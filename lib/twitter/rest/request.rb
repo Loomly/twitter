@@ -33,10 +33,31 @@ module Twitter
 
       # @return [Array, Hash]
       def perform
+        started = Time.now
         response = http_client.headers(@headers).public_send(@request_method, @uri.to_s, @options_key => @options)
+        duration = Time.now - started
         response_body = response.body.empty? ? '' : symbolize_keys!(response.parse)
         response_headers = response.headers
-        fail_or_return_response_body(response.code, response_body, response_headers)
+        error = error(response.code, response_body, response_headers)
+
+        if @client.response_block
+          data = {
+            duration: duration,
+            request: { url: uri, method: request_method, params: options },
+            response: { status: response.code, headers: response_headers }
+          }
+
+          if error
+            data[:error] = {
+              message: error.message,
+              type: error.to_s
+            }
+          end
+
+          @client.response_block.call(data)
+        end
+
+        fail_or_return_response_body(error, response_body)
       end
 
     private
@@ -76,8 +97,7 @@ module Twitter
         end
       end
 
-      def fail_or_return_response_body(code, body, headers)
-        error = error(code, body, headers)
+      def fail_or_return_response_body(error, body)
         raise(error) if error
         @rate_limit = Twitter::RateLimit.new(headers)
         body
