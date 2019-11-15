@@ -52,7 +52,7 @@ module Twitter
           if error
             data[:error] = {
               message: error.message,
-              type: error.to_s
+              type: error.class.name
             }
           end
 
