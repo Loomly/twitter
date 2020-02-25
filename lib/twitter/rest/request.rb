@@ -59,6 +59,10 @@ module Twitter
           @client.response_block.call(data)
         end
 
+        unless error
+          @rate_limit = Twitter::RateLimit.new(response_headers)
+        end
+
         fail_or_return_response_body(error, response_body)
       end
 
@@ -115,8 +119,6 @@ module Twitter
 
       def fail_or_return_response_body(error, body)
         raise(error) if error
-
-        @rate_limit = Twitter::RateLimit.new(headers)
         body
       end
 
