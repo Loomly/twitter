@@ -59,9 +59,7 @@ module Twitter
           @client.response_block.call(data)
         end
 
-        unless error
-          @rate_limit = Twitter::RateLimit.new(response_headers)
-        end
+        set_rate_limit(response_headers) unless error
 
         fail_or_return_response_body(error, response_body)
       end
@@ -115,6 +113,10 @@ module Twitter
         else
           'application/octet-stream'
         end
+      end
+
+      def set_rate_limit(headers)
+        @rate_limit = Twitter::RateLimit.new(headers)
       end
 
       def fail_or_return_response_body(error, body)
