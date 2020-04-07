@@ -48,7 +48,7 @@ module Twitter
 
     # @return [Boolean]
     def reached_limit?
-      @limit && @limit <= attrs[@key].count
+      @limit && @limit <= @collection.count
     end
 
     # @return [Hash]
